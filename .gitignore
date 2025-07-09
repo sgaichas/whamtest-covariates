@@ -47,3 +47,9 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# mac junk
+.DS_Store
+
+# too much model output
+WHAMruns/
