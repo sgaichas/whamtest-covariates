@@ -72,18 +72,57 @@ df.mods <- data.frame(Model = names(mods),
                       NAA_re_model = unlist(unname(lapply(mods, function(x) x$input$data$NAA_re_model))),
                       recruit_model = unlist(unname(lapply(mods, function(x) x$input$data$recruit_model))),
                       Ecov_how_R =  unlist(unname(lapply(mods, function(x) x$input$data$Ecov_how_R))),
+                      n_poly_Ecov_R = unlist(unname(lapply(mods, function(x) x$input$data$n_poly_Ecov_R))),
                       Ecov_model =  names(unlist(unname(lapply(mods, function(x) x$input$data$Ecov_model)))),
                       Ecov_obs_sigma_opt =  unlist(unname(lapply(mods, function(x) x$input$data$Ecov_obs_sigma_opt))))
 
-df.mods$Ecov_lag_R =  ifelse(df.mods$Ecov_how_R == 0, 
-                             "",
-                            unlist(unname(lapply(mods, function(x) length(x$input$log$ecov)))))
+df.mods$Ecov_lag_R  <- ifelse(df.mods$Ecov_model %in% c("rw", "ar1"), unlist(unname(lapply(mods, function(x) which(x$input$years_Ecov==tail(x$input$years,1)) - x$input$data$ind_Ecov_out_end_R - 1))), "")
+
+# end model year
+#tail(x$input$years,1)
+
+# lag
+#which(x$input$years_Ecov==tail(x$input$years,1)) - x$input$data$ind_Ecov_out_end_R - 1
 
 # use words
 df.mods$NAA_re_model  <- dplyr::case_match(df.mods$NAA_re_model, 0 ~ "age-specific-fe", 1 ~ "equilibrium", 2 ~ "iid-re", 3 ~ "ar1-re")
 df.mods$recruit_model <- dplyr::case_match(df.mods$recruit_model, 1 ~ "Random walk", 2 ~ "Random about mean", 3 ~ "Bev-Holt", 4 ~ "Ricker")
 df.mods$Ecov_how_R <- dplyr::case_match(df.mods$Ecov_how_R, 0 ~ "none", 1 ~ "controlling", 2 ~ "limiting", 3 ~ "lethal", 4 ~ "masking", 5 ~ "directive")
+df.mods$n_poly_Ecov_R <- ifelse(df.mods$n_poly_Ecov_R == 1, "linear", paste0("polynomial-", df.mods$n_poly_Ecov_R))
 df.mods$Ecov_obs_sigma_opt <- dplyr::case_match(df.mods$Ecov_obs_sigma_opt, 1~ "", 2 ~ "est_1", 4 ~ "est_re")
+
+# get diagnostics
+opt_conv = 1-sapply(mods, function(x) x$opt$convergence)
+ok_sdrep = sapply(mods, function(x) if(x$na_sdrep==FALSE & !is.na(x$na_sdrep)) 1 else 0)
+df.mods$conv <- as.logical(opt_conv)
+df.mods$pdHess <- as.logical(ok_sdrep)
+df.mods$NLL <- sapply(mods, function(x) round(x$opt$objective,3))
+
+not_conv <- !df.mods$conv | !df.mods$pdHess
+mods2 <- mods
+mods2[not_conv] <- NULL
+
+# take out the base model for final comparison
+mods2 <- mods2[-1]
+
+df.aic.tmp <- as.data.frame(wham::compare_wham_models(mods2, table.opts=list(sort=FALSE, calc.rho=T))$tab)
+df.aic <- df.aic.tmp[FALSE,]
+ct = 1
+for(i in 1:n.mods){
+  if(not_conv[i]){
+    df.aic[i,] <- rep(NA,5)
+  } else {
+    df.aic[i,] <- df.aic.tmp[ct,]
+    ct <- ct + 1
+  }
+}
+df.mods <- cbind(df.mods, df.aic)
+df.mods <- df.mods[order(df.mods$dAIC, na.last=TRUE),]
+df.mods[is.na(df.mods$AIC), c('dAIC','AIC','rho_R','rho_SSB','rho_Fbar')] <- "---"
+rownames(df.mods) <- NULL
+
+df.mods
+
 
 
 ```
