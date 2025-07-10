@@ -98,6 +98,21 @@ saveRDS(mod,file=file.path(write.dir,paste0(mod.dir,".rds")))
 plot_wham_output(mod, dir.main=file.path(write.dir),out.type="png")
 
 
+# redo the NAA RE off ecov off model, something is missing from 207 outputs in WHAM comparison
+
+input206=input204
+newNAA=list(sigma="rec")
+input206=set_NAA(input206,newNAA)
+
+mod.dir="mm206-ecovoff"
+write.dir <- here::here(sprintf("WHAMfits/%s/", mod.dir))
+dir.create(write.dir)
+#setwd(write.dir)
+mm206 <- fit_wham(input206, do.proj=FALSE,do.osa = TRUE,do.retro = TRUE,do.check = T,do.sdrep = TRUE)
+saveRDS(mm206,file=file.path(write.dir,paste0(mod.dir,".rds")))
+plot_wham_output(mm206,dir.main=file.path(write.dir),out.type="png")
+
+
 
 
 #################################################################################

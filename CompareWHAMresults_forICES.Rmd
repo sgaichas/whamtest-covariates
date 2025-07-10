@@ -52,7 +52,7 @@ NAAon_ecovoff <- readRDS(here::here("WHAMfits/mm204-ecovoff/mm204-ecovoff.rds"))
 
 NAAon_ecovon <- readRDS(here::here("WHAMfits/mm205-test/mm205-test.rds"))
 
-NAAoff_ecovoff <- readRDS(here::here("WHAMfits/mm207/mm207.rds"))
+NAAoff_ecovoff <- readRDS(here::here("WHAMfits/mm206-ecovoff/mm206-ecovoff.rds"))
 
 NAAoff_ecovon <- readRDS(here::here("WHAMfits/mm207-ecovon/mm207-ecovon.rds"))
 
@@ -91,6 +91,11 @@ df.mods$Ecov_how_R <- dplyr::case_match(df.mods$Ecov_how_R, 0 ~ "none", 1 ~ "con
 df.mods$n_poly_Ecov_R <- ifelse(df.mods$n_poly_Ecov_R == 1, "linear", paste0("polynomial-", df.mods$n_poly_Ecov_R))
 df.mods$Ecov_obs_sigma_opt <- dplyr::case_match(df.mods$Ecov_obs_sigma_opt, 1~ "", 2 ~ "est_1", 4 ~ "est_re")
 
+# reduce confusion about the base model
+df.mods$Ecov_how_R <- ifelse(df.mods$Model == "base", "", df.mods$Ecov_how_R)
+df.mods$n_poly_Ecov_R <- ifelse(df.mods$Model == "base", "", df.mods$n_poly_Ecov_R)
+
+
 # get diagnostics
 opt_conv = 1-sapply(mods, function(x) x$opt$convergence)
 ok_sdrep = sapply(mods, function(x) if(x$na_sdrep==FALSE & !is.na(x$na_sdrep)) 1 else 0)
@@ -116,15 +121,37 @@ for(i in 1:n.mods){
     ct <- ct + 1
   }
 }
-df.mods <- cbind(df.mods, df.aic)
+df.aic <- tibble::rownames_to_column(df.aic)
+
+df.mods <- dplyr::left_join(df.mods, df.aic, dplyr::join_by(Model == rowname))
 df.mods <- df.mods[order(df.mods$dAIC, na.last=TRUE),]
 df.mods[is.na(df.mods$AIC), c('dAIC','AIC','rho_R','rho_SSB','rho_Fbar')] <- "---"
 rownames(df.mods) <- NULL
 
-df.mods
+diagonly <- df.mods |>
+  dplyr::select(Model, conv, pdHess, NLL, dAIC, AIC, rho_R, rho_SSB, rho_Fbar)
+
+flextable::flextable(diagonly)
+  
 
 
+```
 
+For kicks we can see that the base model has the same retrospective diagnostics as the NAAon-ecovoff model, as expected.
+
+```{r}
+basediag <- as.data.frame(wham::compare_wham_models(mods[1], table.opts=list(sort=FALSE, calc.rho=T))$tab)
+
+flextable::flextable(basediag)
+
+```
+
+The models without NAA RE clearly fit more poorly than those with. 
+
+We can see the WHAM comparison outputs of the ecov models by runnning this
+
+```{r}
+wham::compare_wham_models(mods2)
 ```
 
 
