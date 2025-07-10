@@ -104,6 +104,23 @@ plot_wham_output(mod, dir.main=file.path(write.dir),out.type="png")
 
 # Temperature duration covariate if we want it for comparison
 
+# to get back which model is which run this setup, it was used for both sets below
+
+# larger set of ecov setups to compare
+df.mods <- data.frame(Recruitment = c(rep(2, 8)),
+                      ecov_process = c(rep("rw",4),rep("ar1",4)),
+                      ecov_how = rep(c("none","controlling-lag-1-linear"), 4),
+                      ecovdat = c(rep("mean-est_1", 2),rep("logmean-est_1",2)),
+                      stringsAsFactors=FALSE)
+n.mods <- dim(df.mods)[1]
+df.mods$Model <- paste0("m",1:n.mods)
+df.mods <- dplyr::select(df.mods, Model, tidyselect::everything()) # moves Model to first col
+
+#df.mods is a table of settings for each run, 3 and 4 are the comparable runs to haddock
+# both use ecov_process "rw" and ecovdat "logmean-est_1", 
+# difference is ecov on (ecov_how "controlling-lag-1-linear") or off ("none")
+
+
 # this is NAA RE on with temperature ecov off
 m3RE <- readRDS(here::here("WHAMfits/mm192_LarvalTempDuration/m3.rds"))
 
