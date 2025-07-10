@@ -12,7 +12,7 @@ mm205 <- readRDS(here::here("WHAMfits/mm205/mm205.rds"))
 
 mm205$input$data$Ecov_how_R
 
-# mm204 same model with haddock ecov off
+# mm204 same model with haddock ecov off, I don't have it but will recreate
 
 # this is NAA RE off with haddock ecov off
 mm207 <- readRDS(here::here("WHAMfits/mm207/mm207.rds"))
@@ -70,7 +70,7 @@ mm205=mod
 
 #############I can't find the code for mm207 at the moment, but something like below should be close to functional
 
-# this does sub in the ecov settings from mm205
+# this does sub in the ecov settings from mm205 so model mm207-ecovon is what we want 
 input207=mm205$input
 newNAA=list(sigma="rec")
 input207=set_NAA(input207,newNAA)
@@ -83,12 +83,26 @@ saveRDS(mm207,file=file.path(write.dir,paste0(mod.dir,".rds")))
 plot_wham_output(mm207,dir.main=file.path(write.dir),out.type="png")
 
 
+### also maybe do an ecov off run with NAA RE on for completeness to compare the stats
+
+mod.dir="mm204-ecovoff"
+write.dir <- here::here(sprintf("WHAMfits/%s/", mod.dir))
+#write.dir <- paste("C:/Herring/2025 Assessment RT/Assessments/WHAM",mod.dir,sep="/")
+dir.create(write.dir)
+#setwd(write.dir)
+ecov$recruitment_how <- matrix("none")
+input204 <- set_ecov(mm192$input, ecov)
+
+mod <- fit_wham(input204, do.proj=FALSE,do.osa = TRUE,do.retro = TRUE,do.check = T,do.sdrep = TRUE)
+saveRDS(mod,file=file.path(write.dir,paste0(mod.dir,".rds")))
+plot_wham_output(mod, dir.main=file.path(write.dir),out.type="png")
 
 
 
 
+#################################################################################
 
-# Temperature duration covariate
+# Temperature duration covariate if we want it for comparison
 
 # this is NAA RE on with temperature ecov off
 m3RE <- readRDS(here::here("WHAMfits/mm192_LarvalTempDuration/m3.rds"))
