@@ -1,0 +1,98 @@
+---
+title: "Compare WHAM results"
+author: "Sarah Gaichas, Micah Dean, Jon Deroba"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# ICES Title and Abstract
+
+## Fit for the future? Environmental covariates and random effects in stock assessment
+
+Considerable effort has been invested in evaluating potential environmental drivers of stock productivity, mortality, and/or availability in recent Northwest Atlantic stock assessments. Additional recent investment in regional ocean modeling is aimed at operational short term prediction of environmental conditions such as bottom temperature. Environmental drivers have been successfully included in stock assessments using the Woods Hole Assessment Model (WHAM), a state-space modeling framework. Here we review lessons learned and controversial opinions generated from attempts to include environmental recruitment covariates within a stock assessment for Atlantic herring. Environmental covariates were tailored to herring life history and implemented based on mechanistic hypotheses. Despite significant correlations with recruitment estimated from a prior (non-state-space) assessment model, none of the covariates were included in the final state-space model. We draw two main conclusions. First, even in a state of the art model there are limits on environmental covariate inclusion. For example, mechanistic linkages available for recruitment covariates dwindle if a stock recruit relationship cannot be estimated. Second, tradeoffs may exist between including mechanistic drivers as covariates and including random effects that account for variation from unidentified mechanisms. Herring recruitment covariates had much stronger explanatory power in the absence of numbers at age (NAA) random effects, but model fit was much better with NAA random effects. Given that some environmental covariates can be forecast, while some random effects cannot or it is not clear how, this presents a dilemma. Do we risk sacrificing short term prediction capability (needed by management) for assessment model fit (needed to get models accepted for use in management)? 
+
+## ICES keywords
+
+State space models, recruitment prediction, stock assessment, ecological indicators
+
+
+# Introduction
+
+Here we are looking at different WHAM assessment configurations with and without environmental covariates (ecov) and numbers at age random effects (NAA RE). 
+
+This work will be presented at the 2025 ICES Annual Science Conference. We are speaking in the "Controversial opinions in stock assessment and fisheries management session. The submitted abstract outlines the presentation.
+
+In this document we will work out the code for comparing models with different configurations and develop visualizations for the presentation. 
+
+# Methods
+
+## Compare models
+
+This code follows that posted in the WHAM model vignettes https://timjmiller.github.io/wham/articles/ex02_CPI_recruitment.html 
+
+We are using Atlantic herring assessment models developed for the 2025 Research Track assessment that have already been run and are stored locally.  Some were rerun using the script in this repository (https://github.com/sgaichas/whamtest-covariates/blob/main/Tests.R) to get a full set for comparison. 
+
+We'll focus on the haddock predation models but can use similar code to read in the models evaluating temperature covariates.
+
+First read in the stored model outputs and name them. Then make a list object of models for comparison.
+
+We can compare models with and without NAA RE estimated as long as the input data is the same. So the base model can't be compared (ecov not included) but the other four can, and the NAAon_ecovoff model *should* be identical to base in all practical ways. Base is staying in the nix to ensure that is true.
+
+```{r}
+
+# keep the object names (base etc) and just sub in the temperature model directories if needed
+
+base <- readRDS(here::here("WHAMfits/mm192_meanrecpar_4Feb25/mm192_meanrecpar_4Feb25.rds"))
+
+NAAon_ecovoff <- readRDS(here::here("WHAMfits/mm204-ecovoff/mm204-ecovoff.rds"))
+
+NAAon_ecovon <- readRDS(here::here("WHAMfits/mm205-test/mm205-test.rds"))
+
+NAAoff_ecovoff <- readRDS(here::here("WHAMfits/mm207/mm207.rds"))
+
+NAAoff_ecovon <- readRDS(here::here("WHAMfits/mm207-ecovon/mm207-ecovon.rds"))
+
+mods <- list(base = base, 
+             NAAon_ecovoff = NAAon_ecovoff, 
+             NAAon_ecovon = NAAon_ecovon, 
+             NAAoff_ecovoff = NAAoff_ecovoff, 
+             NAAoff_ecovon = NAAoff_ecovon)
+
+n.mods <- length(mods)
+```
+
+Make a table with names, setup, convergence, etc
+
+```{r}
+df.mods <- data.frame(Model = names(mods),
+                      NAA_re_model = unlist(unname(lapply(mods, function(x) x$input$data$NAA_re_model))),
+                      recruit_model = unlist(unname(lapply(mods, function(x) x$input$data$recruit_model))),
+                      Ecov_how_R =  unlist(unname(lapply(mods, function(x) x$input$data$Ecov_how_R))),
+                      Ecov_model =  names(unlist(unname(lapply(mods, function(x) x$input$data$Ecov_model)))),
+                      Ecov_obs_sigma_opt =  unlist(unname(lapply(mods, function(x) x$input$data$Ecov_obs_sigma_opt))))
+
+df.mods$Ecov_lag_R =  ifelse(df.mods$Ecov_how_R == 0, 
+                             "",
+                            unlist(unname(lapply(mods, function(x) length(x$input$log$ecov)))))
+
+# use words
+df.mods$NAA_re_model  <- dplyr::case_match(df.mods$NAA_re_model, 0 ~ "age-specific-fe", 1 ~ "equilibrium", 2 ~ "iid-re", 3 ~ "ar1-re")
+df.mods$recruit_model <- dplyr::case_match(df.mods$recruit_model, 1 ~ "Random walk", 2 ~ "Random about mean", 3 ~ "Bev-Holt", 4 ~ "Ricker")
+df.mods$Ecov_how_R <- dplyr::case_match(df.mods$Ecov_how_R, 0 ~ "none", 1 ~ "controlling", 2 ~ "limiting", 3 ~ "lethal", 4 ~ "masking", 5 ~ "directive")
+df.mods$Ecov_obs_sigma_opt <- dplyr::case_match(df.mods$Ecov_obs_sigma_opt, 1~ "", 2 ~ "est_1", 4 ~ "est_re")
+
+
+```
+
+
+
+
+## Visualizations
+
+We get max 8 slides to describe this rather complex work so streamline the visualization. 
+
+
