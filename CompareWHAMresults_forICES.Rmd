@@ -110,7 +110,7 @@ mods2[not_conv] <- NULL
 # take out the base model for final comparison
 mods2 <- mods2[-1]
 
-df.aic.tmp <- as.data.frame(wham::compare_wham_models(mods2, table.opts=list(sort=FALSE, calc.rho=T))$tab)
+df.aic.tmp <- as.data.frame(wham::compare_wham_models(mods2, table.opts=list(sort=FALSE, calc.rho=T, print=F))$tab)
 df.aic <- df.aic.tmp[FALSE,]
 ct = 1
 for(i in 1:n.mods){
@@ -140,7 +140,7 @@ flextable::flextable(diagonly)
 For kicks we can see that the base model has the same retrospective diagnostics as the NAAon-ecovoff model, as expected.
 
 ```{r}
-basediag <- as.data.frame(wham::compare_wham_models(mods[1], table.opts=list(sort=FALSE, calc.rho=T))$tab)
+basediag <- as.data.frame(wham::compare_wham_models(mods[1], table.opts=list(sort=FALSE, calc.rho=T, print=F))$tab)
 
 flextable::flextable(basediag)
 
@@ -148,10 +148,10 @@ flextable::flextable(basediag)
 
 The models without NAA RE clearly fit more poorly than those with. 
 
-We can see the WHAM comparison outputs of the ecov models by runnning this
+We can see the WHAM comparison outputs of the ecov models by running this
 
 ```{r}
-wham::compare_wham_models(mods2)
+wham::compare_wham_models(mods2, do.table = F)
 ```
 
 
