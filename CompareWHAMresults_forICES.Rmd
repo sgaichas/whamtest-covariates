@@ -69,7 +69,8 @@ Make a table with names, setup, convergence, etc
 
 ```{r}
 df.mods <- data.frame(Model = names(mods),
-                      NAA_re_model = unlist(unname(lapply(mods, function(x) x$input$data$NAA_re_model))),
+                      NAA_re_sigma = unlist(unname(lapply(mods, function(x) x$input$options$NAA_re$sigma))),
+                      NAA_re_cor = unlist(unname(lapply(mods, function(x) x$input$options$NAA_re$cor))),
                       recruit_model = unlist(unname(lapply(mods, function(x) x$input$data$recruit_model))),
                       Ecov_how_R =  unlist(unname(lapply(mods, function(x) x$input$data$Ecov_how_R))),
                       n_poly_Ecov_R = unlist(unname(lapply(mods, function(x) x$input$data$n_poly_Ecov_R))),
@@ -85,7 +86,6 @@ df.mods$Ecov_lag_R  <- ifelse(df.mods$Ecov_model %in% c("rw", "ar1"), unlist(unn
 #which(x$input$years_Ecov==tail(x$input$years,1)) - x$input$data$ind_Ecov_out_end_R - 1
 
 # use words
-df.mods$NAA_re_model  <- dplyr::case_match(df.mods$NAA_re_model, 0 ~ "age-specific-fe", 1 ~ "equilibrium", 2 ~ "iid-re", 3 ~ "ar1-re")
 df.mods$recruit_model <- dplyr::case_match(df.mods$recruit_model, 1 ~ "Random walk", 2 ~ "Random about mean", 3 ~ "Bev-Holt", 4 ~ "Ricker")
 df.mods$Ecov_how_R <- dplyr::case_match(df.mods$Ecov_how_R, 0 ~ "none", 1 ~ "controlling", 2 ~ "limiting", 3 ~ "lethal", 4 ~ "masking", 5 ~ "directive")
 df.mods$n_poly_Ecov_R <- ifelse(df.mods$n_poly_Ecov_R == 1, "linear", paste0("polynomial-", df.mods$n_poly_Ecov_R))
@@ -159,6 +159,83 @@ wham::compare_wham_models(mods2, do.table = F)
 
 ## Visualizations
 
-We get max 8 slides to describe this rather complex work so streamline the visualization. 
+We get max 8 slides to describe this rather complex work so streamline the visualization.
 
+## Title slide (cheating not counting this)
+
+Controversial opinion/conclusion: 
+
+Both random effects and environmental covariates can help explain modeled population dynamics, but they may interact in unexpected ways. 
+
+RE represent cumulative unknown drivers, which can be difficult to project into the future without understanding mechanisms, while environmental covariates represent possibly predictable but incomplete mechanistic drivers, whose influence may change over time.
+
+RE solve a lot of diagnostic issues in models (e.g. retrospective patterns) and are considerably easier to implement than environmental covariates, which require considerable investment in research and development.
+
+Do we risk sacrificing short term prediction capability (needed by management) for assessment model fit (needed to get models accepted for use in management)? 
+
+## Slide 1
+
+Intro: goal was develop a new state space herring assessment and explore with ecological covariates
+
+Map of herring stock we are talking about
+
+History and current status
+
+## Slide 2
+
+Possible ecological drivers: haddock predation
+
+Micah's spatial modeling and index development
+
+High inverse correlation of resulting haddock index with previously estimated herring recruitment
+
+## Slide 3
+
+New state space model developed with NAA RE, best fit with numbers at age transition correlations among ages but not years
+
+Image of NAA RE pattern
+
+Good model diagnostics
+
+## Slide 4
+
+Including the covariate in the model: only one approach possible because stock recruit relationship not estimable
+
+Model estimates recruitment as annual iid RE around an estimated fixed effect recruitment scaling parameter ("mean-ish" recruitment)
+
+Model estimates a fit to covariate data, then estimates parameters of relationship with recruitment scaling parameter (lag-1-linear)
+
+Image of fit to haddock predation index covariate
+
+## Slide 5
+
+Given correlation with previous recruitment estimates, it was surprising how little impact the covariate had on recruitment or the full models
+
+Side by side image of rec scaling parameter estimate with and without the covariate
+
+Didn't substantially improve model fit or reduce the process SD for recruitment, and the slope estimate CI included 0
+
+## Slide 6
+
+An experiment fitting the model without NAA RE on older ages and with the environmental covariate resulted in poorer model fit but a much stronger covariate effect
+
+And a different recruitment time series? NAA RE on ages soaking up some uncertainty that could be explained mechanistically
+
+Image comparing recruitment deviations with and without NAA RE and impact of haddock predation index 
+
+## Slide 7
+
+But which mechanism? We got a similar effect with a different environmental covariate--optimal larval temperature. Try to include both??
+
+And maybe its just herring's NAA RE? Yellowtail assessment had both NAA RE and an influential environmental covariate included. 
+
+Image of larval temp covariate with and without NAA RE, image of Yellowtail fit if I can get it?
+
+## Conclusion
+
+RE interactions with covariates in state space assessment models obviously needs more investigation
+
+We tend to obsess about historical model fit, then do projections separately with a single best fit model, but projections are the thing used in management for catch advice
+
+Past performance does not guarantee future returns!
 
