@@ -161,9 +161,13 @@ wham::compare_wham_models(mods2, do.table = F)
 
 We get max 8 slides to describe this rather complex work so streamline the visualization.
 
+Correction! They want a 6 minute talk... 6 slides max!
+
 ## Title slide (cheating not counting this)
 
 Controversial opinion/conclusion: 
+
+Fitting the model isn't our ultimate goal!
 
 Both random effects and environmental covariates can help explain modeled population dynamics, but they may interact in unexpected ways. 
 
@@ -179,17 +183,17 @@ Intro: goal was develop a new state space herring assessment and explore with ec
 
 Map of herring stock we are talking about
 
-History and current status
+History and current status: current low recruitment
 
-## Slide 2
+## Slide 2 combine with slide 1
 
 Possible ecological drivers: haddock predation
 
 Micah's spatial modeling and index development
 
-High inverse correlation of resulting haddock index with previously estimated herring recruitment
+High inverse correlation of resulting haddock index with previously estimated herring recruitment/SSB
 
-## Slide 3
+## Slide 3 need to combine with slide 4 somehow
 
 New state space model developed with NAA RE, best fit with numbers at age transition correlations among ages but not years
 
@@ -223,7 +227,66 @@ And a different recruitment time series? NAA RE on ages soaking up some uncertai
 
 Image comparing recruitment deviations with and without NAA RE and impact of haddock predation index 
 
-## Slide 7
+```{r}
+wham:::plot.recr.ssb.yr(NAAon_ecovoff, loglog=FALSE)
+
+wham:::plot.index.4.panel(NAAon_ecovoff)
+
+wham:::plot.NAA(NAAon_ecovoff)
+
+wham:::plot.SSB.F.trend(NAAon_ecovoff)
+
+# code stolen from https://github.com/timjmiller/wham/blob/master/R/compare_wham_models.R
+# 
+
+x <- list()
+
+for(i in 1:length(mods2)){
+        x[[i]] <- wham::read_wham_fit(mods2[[i]])
+    }
+        
+names(x) <- names(mods2)
+
+df <- data.frame(matrix(NA, nrow=0, ncol=6))
+colnames(df) <- c("Year","var","val","lo","hi","Model")
+  
+stock <- 1
+region <- 1
+
+for(i in 1:length(x)){
+      #if(x[[i]]$is.wham){
+        df <- rbind(df, data.frame(Year=x[[i]]$years_full, var="SSB", val=exp(x[[i]]$log_SSB_all$est), lo=x[[i]]$log_SSB_all$ci$lo, 
+          hi=x[[i]]$log_SSB_all$ci$hi, Model=names(x)[i]))
+        df <- rbind(df, data.frame(Year=x[[i]]$years_full, var="F", val=exp(x[[i]]$log_F_tot$est), lo=x[[i]]$log_F_tot$ci$lo, 
+          hi=x[[i]]$log_F_tot$ci$hi, Model=names(x)[i]))
+        df <- rbind(df, data.frame(Year=x[[i]]$years_full, var="Recruitment", val=exp(x[[i]]$log_NAA_rep$est[stock,region,,1]), 
+          lo=x[[i]]$log_NAA_rep$ci$lo[stock,region,,1], hi=x[[i]]$log_NAA_rep$ci$hi[stock,region,,1], Model=names(x)[i]))
+      
+      #}
+}
+  
+reconly <- ggplot2::ggplot(df |> dplyr::filter(var %in% "Recruitment")) +
+  ggplot2::geom_line(ggplot2::aes(x=Year, y=val, color=Model)) +
+  ggplot2::theme_bw()
+
+recSSB <- ggplot2::ggplot(df |> 
+                            dplyr::filter(var %in% c("Recruitment", "SSB")) |>
+                            dplyr::select(Year, var, val, Model) |>
+                            tidyr::pivot_wider(names_from = var, values_from = val) |>
+                            dplyr::mutate(recSSB = Recruitment/SSB)
+                            ) +
+  ggplot2::geom_line(ggplot2::aes(x=Year, y=recSSB, color=Model)) +
+  ggplot2::theme_bw()
+
+# can I get the ASAP rec/SSB plot overlaid?
+
+
+
+
+```
+
+
+## Slide 7 (we dont have time for this)
 
 But which mechanism? We got a similar effect with a different environmental covariate--optimal larval temperature. Try to include both??
 
