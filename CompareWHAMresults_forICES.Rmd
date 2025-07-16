@@ -275,7 +275,9 @@ recSSB <- ggplot2::ggplot(df |>
                             dplyr::filter(var %in% c("Recruitment", "SSB")) |>
                             dplyr::select(Year, var, val, Model) |>
                             tidyr::pivot_wider(names_from = var, values_from = val) |>
-                            dplyr::mutate(recSSB = dplyr::lead(Recruitment)/SSB) # rec in year+1/SSB in year
+                            dplyr::group_by(Model) |>
+                            dplyr::mutate(recSSB = dplyr::lead(Recruitment)/SSB) |> # rec in year+1/SSB in year
+                            dplyr::ungroup() 
                             ) +
   ggplot2::geom_line(ggplot2::aes(x=Year, y=recSSB, color=Model)) +
   ggplot2::theme_bw() +
@@ -3577,7 +3579,9 @@ recSSB <- ggplot2::ggplot(df |>
                             dplyr::filter(var %in% c("Recruitment", "SSB")) |>
                             dplyr::select(Year, var, val, Model) |>
                             tidyr::pivot_wider(names_from = var, values_from = val) |>
-                            dplyr::mutate(recSSB = dplyr::lead(Recruitment)/SSB)
+                            dplyr::group_by(Model) |>
+                            dplyr::mutate(recSSB = dplyr::lead(Recruitment)/SSB) |> # rec in year+1/SSB in year
+                            dplyr::ungroup()
                             ) +
   ggplot2::geom_area(data = recSSB24short, ggplot2::aes(x=Year, y=recSSB, fill = "lightgray")) +
   ggplot2::geom_line(ggplot2::aes(x=Year, y=recSSB, color=Model)) +
