@@ -275,7 +275,7 @@ recSSB <- ggplot2::ggplot(df |>
                             dplyr::filter(var %in% c("Recruitment", "SSB")) |>
                             dplyr::select(Year, var, val, Model) |>
                             tidyr::pivot_wider(names_from = var, values_from = val) |>
-                            dplyr::mutate(recSSB = Recruitment/SSB)
+                            dplyr::mutate(recSSB = dplyr::lead(Recruitment)/SSB) # rec in year+1/SSB in year
                             ) +
   ggplot2::geom_line(ggplot2::aes(x=Year, y=recSSB, color=Model)) +
   ggplot2::theme_bw() +
@@ -3566,18 +3566,18 @@ rec24 <- ASAP2024$N.age[,1]
 
 SSB24 <- ASAP2024$SSB
 
-recSSB24 <- rec24/SSB24
+recSSB24 <- dplyr::lead(rec24)/SSB24 # has year of rec, want year of SSB compared with rec yr+1
 
 recSSB24short <- recSSB24[-c(1:22)] |>
   tibble::enframe() |>
   dplyr::select(Year = name, recSSB = value) |>
-  dplyr::mutate(Year = as.numeric(Year))
+  dplyr::mutate(Year = as.numeric(Year)-1)
 
 recSSB <- ggplot2::ggplot(df |> 
                             dplyr::filter(var %in% c("Recruitment", "SSB")) |>
                             dplyr::select(Year, var, val, Model) |>
                             tidyr::pivot_wider(names_from = var, values_from = val) |>
-                            dplyr::mutate(recSSB = Recruitment/SSB)
+                            dplyr::mutate(recSSB = dplyr::lead(Recruitment)/SSB)
                             ) +
   ggplot2::geom_area(data = recSSB24short, ggplot2::aes(x=Year, y=recSSB, fill = "lightgray")) +
   ggplot2::geom_line(ggplot2::aes(x=Year, y=recSSB, color=Model)) +
@@ -3586,6 +3586,11 @@ recSSB <- ggplot2::ggplot(df |>
   ggplot2::ylab("Rec/SSB")
 
 recSSB
+
+reconly <- ggplot2::ggplot(df |> dplyr::filter(var %in% "Recruitment")) +
+  ggplot2::geom_line(ggplot2::aes(x=Year, y=val, color=Model)) +
+  ggplot2::theme_bw()
+
 ```
 
 
