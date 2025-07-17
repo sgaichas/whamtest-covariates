@@ -53,5 +53,5 @@ rsconnect/
 
 # too much model output
 # maybe its ok
-WHAMfits/
+#WHAMfits/
 ignore/
