@@ -52,4 +52,5 @@ rsconnect/
 .DS_Store
 
 # too much model output
-WHAMfits/
+# maybe its ok
+#WHAMfits/
