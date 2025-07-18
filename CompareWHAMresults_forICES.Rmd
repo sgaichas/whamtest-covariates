@@ -221,7 +221,7 @@ Given correlation with previous recruitment estimates, it was surprising how lit
 
 Side by side image of rec scaling parameter estimate with and without the covariate
 
-```{r}
+```{r NAAonplots, fig.show='hold', out.width='49%'}
 NAAmods <- mods2[c("NAAon_ecovoff", "NAAon_ecovon")]
 
 # code from wham:::plot.NAA.4.panel in https://github.com/timjmiller/wham/blob/master/R/wham_plots_tables.R
@@ -250,6 +250,7 @@ plot.NAA.rec.panel <- function(mod){
       plot(years_full, NAA[s,r,,i], type='p', col=plot.colors[i], pch=1, xlab="Year", ylab="Abundance (1000s)",
         ylim=c(0, 1.1*y.max))
       lines(years_full, pred_NAA[s,r,,i], col=plot.colors[i], lwd=2)
+      title(main = deparse(substitute(mod)))
       if(length(years_full) > length(years)) abline(v=tail(years,1), lty=2, lwd=1)
     }
   }
@@ -257,13 +258,12 @@ plot.NAA.rec.panel <- function(mod){
 
 #purrr::map(NAAmods, plot.NAA.rec.panel)
 
-library(patchwork)
-
-p1 <- plot.NAA.rec.panel(NAAon_ecovoff)
+plot.NAA.rec.panel(NAAon_ecovoff)
   
-p2 <- plot.NAA.rec.panel(NAAon_ecovon)
+plot.NAA.rec.panel(NAAon_ecovon)
 
-p1 + p2
+
+
 
 ```
 
@@ -274,20 +274,22 @@ Didn't substantially improve model fit or reduce the process SD for recruitment,
 
 An experiment fitting the model without NAA RE on older ages and with the environmental covariate resulted in poorer model fit but a much stronger covariate effect
 
-```{r}
-p1 <- plot.NAA.rec.panel(NAAoff_ecovoff)
-  
-p2 <- plot.NAA.rec.panel(NAAoff_ecovon)
+Image comparing recruitment deviations with and without NAA RE and impact of haddock predation index 
 
-p1 + p2
+```{r NAAoffplots, fig.show='hold', out.width='49%'}
+plot.NAA.rec.panel(NAAoff_ecovoff)
+  
+plot.NAA.rec.panel(NAAoff_ecovon)
+
+
 ```
 
 
 And a different recruitment time series? NAA RE on ages soaking up some uncertainty that could be explained mechanistically
 
-We dont have a recruitment index in this model
+We dont have a recruitment index in this model so recruitment is more fungible
 
-Image comparing recruitment deviations with and without NAA RE and impact of haddock predation index 
+
 
 ```{r}
 #wham:::plot.recr.ssb.yr(NAAon_ecovoff, loglog=FALSE)
@@ -418,11 +420,31 @@ We had several potential drivers so there could be more than one. But which mech
 
 We got a similar effect with a different environmental covariate--optimal larval temperature. Try to include both??
 
+![tempduration fit](WHAMfits/mm192_LarvalTempDuration/m3/plots_png/results/Ecov_1_LarvalTempDuration.png)
+
 And maybe its just herring's NAA RE? Yellowtail assessment had both NAA RE and an influential environmental covariate included. Maybe there is recruitment information in this model?
 
 Image of larval temp covariate with and without NAA RE, image of Yellowtail fit if I can get it?
 
-```{r}
+```{r larvaltempNAAonplots, fig.show='hold', out.width='49%'}
+larvaltemp_NAAon_ecovoff <- readRDS(here::here("WHAMfits/mm192_LarvalTempDuration/m3.rds"))
+
+larvaltemp_NAAon_ecovon <- readRDS(here::here("WHAMfits/mm192_LarvalTempDuration/m4.rds"))
+
+larvaltemp_NAAoff_ecovoff <- readRDS(here::here("WHAMfits/mm192_LarvalTempDuration_NAA_REoff/m3.rds"))
+
+larvaltemp_NAAoff_ecovon <- readRDS(here::here("WHAMfits/mm192_LarvalTempDuration_NAA_REoff/m4.rds"))
+
+plot.NAA.rec.panel(larvaltemp_NAAon_ecovoff)
+  
+plot.NAA.rec.panel(larvaltemp_NAAon_ecovon)
+
+```
+
+```{r larvaltempNAAoffplots, fig.show='hold', out.width='49%'}
+plot.NAA.rec.panel(larvaltemp_NAAoff_ecovoff)
+  
+plot.NAA.rec.panel(larvaltemp_NAAoff_ecovon)
 
 ```
 
